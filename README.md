@@ -11,6 +11,8 @@
 ```#!bash
 git clone https://github.com/userok17/10_coursera
 
+sudo apt-get install python3-lxml
+
 pip3 install -r requirements.txt
 
 python3 coursera.py 
