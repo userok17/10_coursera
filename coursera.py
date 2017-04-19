@@ -4,7 +4,6 @@ import openpyxl
 import random
 from datetime import datetime
 import os
-import openpyxl
 import webbrowser
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
