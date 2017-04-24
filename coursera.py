@@ -8,14 +8,17 @@ import webbrowser
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+        
 def get_courses_list(count_courses):
     url = 'https://www.coursera.org/sitemap~www~courses.xml'
     request = requests.get(url)
     soup = BeautifulSoup(request.text, 'lxml')
     tags_loc = random.sample(soup.find_all('loc'), count_courses)
-    courses_list = [url.text for url in tags_loc]
-    return courses_list
-    
+    courses_list = []
+    for url in tags_loc:
+        course_info = get_course_info(url.text)
+        courses_list.append(course_info)
+    return courses_list   
 
 def get_course_info(url):
     request = requests.get(url)
@@ -39,10 +42,8 @@ def get_course_info(url):
     }
     return course_info
 
-
-def output_courses_info_to_xlsx(filepath, count_courses):
+def output_courses_info_to_xlsx(filepath, courses_list):
         width_columns = 25
-        courses_list = get_courses_list(count_courses)
         offset_row = 2
         
         workbook = openpyxl.Workbook()
@@ -55,9 +56,8 @@ def output_courses_info_to_xlsx(filepath, count_courses):
         sheet.cell(row=1, column=6, value='Url')
 
         
-        for idx, url in enumerate(courses_list):
+        for idx, course_info in enumerate(courses_list):
             row = idx + offset_row
-            course_info = get_course_info(url)
             sheet.cell(row=row, column=1, value=course_info['title'])
             sheet.cell(row=row, column=2, value=course_info['language'])
             sheet.cell(row=row, column=3, value=course_info['start_date'])
@@ -74,23 +74,35 @@ def output_courses_info_to_xlsx(filepath, count_courses):
         sheet.column_dimensions['F'].width = width_columns
         
         workbook.save(filepath)
-        webbrowser.open(filepath)
 
-def main():
-    print('Сканирование курсов')
-
-    folder = 'data'
+def create_folder(folder):
     if not os.path.isdir(folder):
         os.mkdir(folder)
-    
+
+def generate_filename():
     now = datetime.now()
     date_string = now.strftime('%d-%m-%Y-%H-%M-%S')
     filename = '{}.xlsx'.format(date_string)
-    filepath = os.path.join(folder, filename)
+    return filename
+
+def open_xlsx(filepath):
+    webbrowser.open(filepath)
+
+def main():
+    print('Сканирование курсов')
     
     count_courses = 20
+    courses_list = get_courses_list(count_courses)
+
+    folder = 'data'
+    create_folder(folder)
     
-    output_courses_info_to_xlsx(filepath, count_courses)
+    filename = generate_filename()
+    filepath = os.path.join(folder, filename)
+
+    output_courses_info_to_xlsx(filepath, courses_list)
+
+    open_xlsx(filepath)
     
     print('Сканирование курсов завершено')
     
